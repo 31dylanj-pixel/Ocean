@@ -33,6 +33,7 @@
             width: 100%;
             height: 100vh;
             overflow: hidden;
+            z-index: 1;
         }
 
         /* Three.js canvas container */
@@ -58,6 +59,7 @@
             transform: translateY(50px);
             transition: opacity 0.8s ease, transform 0.8s ease;
             pointer-events: none;
+            z-index: 2;
         }
 
         .content-section.active {
@@ -126,6 +128,10 @@
             z-index: 1000;
             text-align: center;
             transition: opacity 0.5s ease;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
         }
 
         .loading.hidden {
@@ -145,6 +151,19 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* Debug info */
+        .debug {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 1001;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -152,6 +171,8 @@
         <div class="spinner"></div>
         <p>Loading the Ocean...</p>
     </div>
+
+    <div class="debug" id="debug">Debug Info</div>
 
     <div class="scroll-container">
         <!-- Content sections -->
@@ -174,7 +195,7 @@
         </section>
 
         <section id="deep-section" class="content-section">
-            <1>The Abyss</h1>
+            <h1>The Abyss</h1>
             <p>In the darkest depths, bioluminescent creatures illuminate the void. The ocean's secrets await discovery.</p>
             <a href="#sky-section" class="cta-button">Return to Surface</a>
         </section>
@@ -186,10 +207,11 @@
 
     <!-- Three.js library via CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls for camera interaction -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.min.js"></script>
     
     <script>
+        // Debug info
+        const debug = document.getElementById('debug');
+        
         // Hide loading screen once everything is loaded
         window.addEventListener('load', function() {
             setTimeout(() => {
@@ -200,54 +222,71 @@
         // Main Three.js setup
         let scene, camera, renderer;
         let ocean, sky;
-        let fish = [];
+        let fishes = [];
         let bubbles = [];
         let scrollPosition = 0;
         let targetScrollPosition = 0;
         let currentDepth = 0;
 
         function init() {
-            // Scene setup
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x001a33, 0.02);
+            debug.innerHTML = 'Initializing...';
+            
+            try {
+                // Scene setup
+                scene = new THREE.Scene();
+                scene.fog = new THREE.FogExp2(0x001a33, 0.02);
 
-            // Camera setup
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 5, 10);
+                // Camera setup
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.set(0, 5, 10);
 
-            // Renderer setup
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            renderer.shadowMap.enabled = true;
-            document.getElementById('scene-container').appendChild(renderer.domElement);
+                // Renderer setup
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                renderer.shadowMap.enabled = true;
+                
+                const container = document.getElementById('scene-container');
+                container.appendChild(renderer.domElement);
+                
+                debug.innerHTML += '<br>Renderer created';
 
-            // Add lighting
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
-            scene.add(ambientLight);
+                // Add lighting
+                const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+                scene.add(ambientLight);
 
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 20, 15);
-            directionalLight.castShadow = true;
-            scene.add(directionalLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 20, 15);
+                directionalLight.castShadow = true;
+                scene.add(directionalLight);
+                
+                debug.innerHTML += '<br>Lights added';
 
-            // Create sky gradient
-            createSky();
+                // Create sky gradient
+                createSky();
 
-            // Create ocean
-            createOcean();
+                // Create ocean
+                createOcean();
 
-            // Create marine life
-            createMarineLife();
+                // Create marine life
+                createMarineLife();
+                
+                debug.innerHTML += '<br>Scene created';
 
-            // Handle window resize
-            window.addEventListener('resize', onWindowResize);
+                // Handle window resize
+                window.addEventListener('resize', onWindowResize);
 
-            // Handle scroll
-            window.addEventListener('scroll', onScroll);
+                // Handle scroll
+                window.addEventListener('scroll', onScroll);
 
-            // Start animation loop
-            animate();
+                // Start animation loop
+                animate();
+                
+                debug.innerHTML += '<br>Animation started';
+            } catch (error) {
+                debug.innerHTML = 'Error: ' + error.message;
+                console.error('Three.js initialization error:', error);
+            }
         }
 
         function createSky() {
@@ -284,7 +323,6 @@
                 transparent: true,
                 opacity: 0.6,
                 side: THREE.DoubleSide,
-                wireframe: false
             });
             const waves = new THREE.Mesh(waveGeometry, waveMaterial);
             waves.rotation.x = -Math.PI / 2;
@@ -483,8 +521,11 @@
             renderer.render(scene, camera);
         }
 
-        // Initialize the scene
-        init();
+        // Initialize the scene when the script loads
+        window.addEventListener('DOMContentLoaded', function() {
+            debug.innerHTML = 'DOM loaded, initializing Three.js...';
+            init();
+        });
     </script>
 </body>
 </html>
