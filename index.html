@@ -227,7 +227,7 @@
         let scrollPosition = 0;
         let targetScrollPosition = 0;
         let currentDepth = 0;
-        let directionalLight; // Declare directionalLight in outer scope
+        let directionalLight; // Declare in outer scope
 
         function init() {
             debug.innerHTML = 'Initializing...';
@@ -488,7 +488,7 @@
             // Update ocean opacity based on depth
             ocean.material.opacity = Math.max(0.3, 0.8 - currentDepth * 0.02);
             
-            // Update lighting intensity based on depth (only if directionalLight exists)
+            // Update lighting intensity based on depth (with null check)
             if (directionalLight) {
                 directionalLight.intensity = Math.max(0.2, 0.8 - currentDepth * 0.03);
             }
