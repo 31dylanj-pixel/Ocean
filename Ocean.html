@@ -227,6 +227,7 @@
         let scrollPosition = 0;
         let targetScrollPosition = 0;
         let currentDepth = 0;
+        let directionalLight; // Declare directionalLight in outer scope
 
         function init() {
             debug.innerHTML = 'Initializing...';
@@ -255,7 +256,7 @@
                 const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
                 scene.add(ambientLight);
 
-                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
                 directionalLight.position.set(10, 20, 15);
                 directionalLight.castShadow = true;
                 scene.add(directionalLight);
@@ -487,8 +488,10 @@
             // Update ocean opacity based on depth
             ocean.material.opacity = Math.max(0.3, 0.8 - currentDepth * 0.02);
             
-            // Update lighting intensity based on depth
-            directionalLight.intensity = Math.max(0.2, 0.8 - currentDepth * 0.03);
+            // Update lighting intensity based on depth (only if directionalLight exists)
+            if (directionalLight) {
+                directionalLight.intensity = Math.max(0.2, 0.8 - currentDepth * 0.03);
+            }
             
             // Animate fish
             fishes.forEach(fish => {
